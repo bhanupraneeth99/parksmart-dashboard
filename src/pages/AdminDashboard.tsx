@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParkingStore } from '@/store/parkingStore';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,16 @@ export default function AdminDashboard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!currentUser || currentUser.role !== 'admin') { navigate('/'); return null; }
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      console.log('AdminDashboard: unauthorized, redirecting');
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
+
+  console.log('AdminDashboard mounted');
+
+  if (!currentUser || currentUser.role !== 'admin') return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
