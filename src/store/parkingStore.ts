@@ -5,17 +5,14 @@ const BOOKING_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 const generateSlots = (): ParkingSlot[] => {
   const slots: ParkingSlot[] = [];
-  const floors = ['A', 'B', 'C'];
-  floors.forEach((floor) => {
-    for (let i = 1; i <= 8; i++) {
-      slots.push({
-        id: `${floor}${i}`,
-        number: `${floor}-${i.toString().padStart(2, '0')}`,
-        floor,
-        status: Math.random() > 0.6 ? 'occupied' : 'available',
-      });
-    }
-  });
+  for (let i = 1; i <= 7; i++) {
+    slots.push({
+      id: `S${i}`,
+      number: `S-0${i}`,
+      floor: 'S',
+      status: Math.random() > 0.6 ? 'occupied' : 'available',
+    });
+  }
   return slots;
 };
 
@@ -33,9 +30,8 @@ interface ParkingStore {
 
 const mockSlots = generateSlots();
 // Set a few as reserved for demo
-mockSlots[2].status = 'reserved';
-mockSlots[5].status = 'reserved';
-mockSlots[10].status = 'reserved';
+mockSlots[1].status = 'reserved';
+mockSlots[4].status = 'reserved';
 
 const mockAdminUser: User = { id: 'admin-1', name: 'Admin', email: 'admin@park.com', role: 'admin' };
 
@@ -48,8 +44,8 @@ export const useParkingStore = create<ParkingStore>((set, get) => ({
       customerName: 'John Smith',
       phone: '555-0101',
       vehicleNumber: 'ABC-1234',
-      slotId: 'A3',
-      slotNumber: 'A-03',
+      slotId: 'S2',
+      slotNumber: 'S-02',
       bookingTime: new Date(Date.now() - 5 * 60 * 1000),
       expiryTime: new Date(Date.now() + 10 * 60 * 1000),
       status: 'active',
@@ -59,8 +55,8 @@ export const useParkingStore = create<ParkingStore>((set, get) => ({
       customerName: 'Jane Doe',
       phone: '555-0202',
       vehicleNumber: 'XYZ-5678',
-      slotId: 'B6',
-      slotNumber: 'B-06',
+      slotId: 'S5',
+      slotNumber: 'S-05',
       bookingTime: new Date(Date.now() - 20 * 60 * 1000),
       expiryTime: new Date(Date.now() - 5 * 60 * 1000),
       status: 'expired',

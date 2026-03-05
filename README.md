@@ -1,73 +1,193 @@
-# Welcome to your Lovable project
+# Smart Parking Detection System – YOLOv8 + FastAPI + React
 
-## Project info
+An AI-powered parking monitoring system that detects vehicles using YOLOv8 and automatically updates parking slot availability in real time. The system includes an admin dashboard, live detection stream, slot booking system, and video analysis pipeline.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- AI vehicle detection using YOLOv8
+- Real-time parking slot monitoring
+- Admin dashboard with analytics
+- Parking slot booking system
+- Live detection video stream
+- Exit-line tracking for vehicle departure
+- Automatic database updates
+- FastAPI backend
+- React + Vite frontend
 
-There are several ways of editing your application.
+## System Architecture
 
-**Use Lovable**
+**Backend:**
+- FastAPI API server
+- YOLOv8 detection engine
+- SQLite database
+- OpenCV video processing
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+**Frontend:**
+- React + Vite dashboard
+- Admin panel
+- Slot monitoring UI
 
-Changes made via Lovable will be committed automatically to this repo.
+## Project Folder Structure
 
-**Use your preferred IDE**
+```text
+parksmart-dashboard/
+│
+├── backend/
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│   ├── parking_detection.py
+│   ├── routes/
+│   │   ├── upload_video.py
+│   │   ├── booking.py
+│   │   └── slots.py
+│   ├── uploads/
+│   └── parksmart.db
+│
+├── frontend/
+│   ├── src/
+│   ├── components/
+│   ├── pages/
+│   └── package.json
+│
+└── README.md
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Local Setup Instructions
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 1. Clone Repository
+```bash
+git clone https://github.com/SriRamkunamsetty/parksmart-dashboard.git
+cd parksmart-dashboard
+```
 
-Follow these steps:
+### 2. Install Backend Dependencies
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Go to the backend folder:
+```bash
+cd backend
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Create a virtual environment:
+```bash
+python -m venv venv
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+Activate the environment:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+**Windows:**
+```bash
+venv\Scripts\activate
+```
+
+**Mac/Linux:**
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Run Backend Server
+```bash
+uvicorn main:app --reload
+```
+
+Server will run on:
+`http://localhost:8000`
+
+API documentation:
+`http://localhost:8000/docs`
+
+## Frontend Setup
+
+Go to the frontend folder:
+```bash
+cd frontend
+```
+
+Install dependencies:
+```bash
+npm install
+```
+
+Run the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Frontend runs at:
+`http://localhost:8080` (or depending on your Vite config, often `http://localhost:5173`)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## How to Use the System
 
-**Use GitHub Codespaces**
+### 1. Open Admin Dashboard
+Navigate to `http://localhost:8080/admin` in your web browser.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 2. Upload Parking Video
+1. Upload a `.mp4` parking lot video on the admin panel.
+2. The system will start YOLO vehicle detection, detect cars in parking slots, and automatically update slot availability.
 
-## What technologies are used for this project?
+### 3. Live Detection
+The admin dashboard displays:
+- Parking slot polygons
+- Vehicle bounding boxes
+- Exit detection line
+- Slot status directly overlaid on the live stream
 
-This project is built with:
+### 4. Slot Status Logic
+- **Blue** → Available
+- **Red** → Occupied
+- **Yellow** → Reserved
 
-- Vite
-- TypeScript
+### 5. Exit Line Tracking
+When a vehicle crosses the exit line, the system automatically marks the slot as available.
+
+## Database
+
+- **Database used:** SQLite
+- **File location:** `backend/parksmart.db`
+- **Slots table contains:** `slot_id`, `slot_number`, `status`
+
+## API Endpoints
+
+- `POST /upload-parking-video`
+- `GET /slots`
+- `GET /slot-stats`
+- `GET /analysis-status`
+- `POST /start-analysis`
+- `POST /stop-analysis`
+- `POST /reset-slots`
+
+## Demo Workflow
+
+1. Start backend
+2. Start frontend
+3. Open admin dashboard
+4. Upload parking video
+5. Watch real-time detection as slot availability updates automatically
+
+## Technologies Used
+
+- Python
+- FastAPI
+- YOLOv8
+- OpenCV
 - React
-- shadcn-ui
-- Tailwind CSS
+- Vite
+- SQLite
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+MIT License
 
-## Can I connect a custom domain to my Lovable project?
+## Contribution
 
-Yes, you can!
+Contributions are welcome. Please fork the repository and submit pull requests.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Author
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+**SriRam Kunamsetty**
+Smart Parking Detection System Project

@@ -57,6 +57,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "slot-available": "hsl(var(--slot-available))",
+        "slot-reserved": "hsl(var(--slot-reserved))",
+        "slot-occupied": "hsl(var(--slot-occupied))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -67,11 +70,7 @@ export default {
         sans: ['Inter', 'sans-serif'],
         display: ['Space Grotesk', 'sans-serif'],
       },
-      colors: {
-        "slot-available": "hsl(var(--slot-available))",
-        "slot-reserved": "hsl(var(--slot-reserved))",
-        "slot-occupied": "hsl(var(--slot-occupied))",
-      },
+      /* Custom slot colors are defined inside the main colors block now */
       boxShadow: {
         card: "var(--shadow-card)",
         slot: "var(--shadow-slot)",
