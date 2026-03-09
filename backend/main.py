@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import engine, SessionLocal
 import models
 from models import ProcessingJob, ParkingSession, SystemEvent, ParkingSlot
-from config import MODEL_IMG_SIZE, EVENT_LOG_RETENTION_HOURS
+from config import MODEL_IMG_SIZE, EVENT_LOG_RETENTION_HOURS, LIVE_API_CACHE_TTL
 
 logging.basicConfig(
     level=logging.INFO, 
@@ -27,6 +27,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Parksmart API")
 START_TIME = datetime.utcnow()
+LIVE_SLOTS_CACHE = {"data": None, "timestamp": 0}
 
 app.add_middleware(
     CORSMiddleware,
@@ -67,7 +68,10 @@ def system_health():
         "inference_time_ms": metrics["inference_time_ms"],
         "slot_eval_time_ms": metrics["slot_eval_time_ms"],
         "gpu_usage": metrics.get("gpu_usage", "N/A"),
-        "stream_status": metrics.get("stream_status", "unknown")
+        "stream_status": metrics.get("stream_status", "unknown"),
+        "camera_fps": metrics.get("camera_fps", 0),
+        "camera_latency": metrics.get("camera_latency", 0),
+        "camera_last_frame_time": metrics.get("camera_last_frame_time", 0)
     }
 
 @app.get("/api/system/settings")
@@ -114,6 +118,11 @@ def get_slots_utilization():
 
 @app.get("/api/slots/live")
 def get_slots_live():
+    global LIVE_SLOTS_CACHE
+    import time
+    now_ts = time.time()
+    if LIVE_SLOTS_CACHE["data"] and (now_ts - LIVE_SLOTS_CACHE["timestamp"] < LIVE_API_CACHE_TTL):
+        return LIVE_SLOTS_CACHE["data"]
     db = SessionLocal()
     try:
         slots = db.query(ParkingSlot).all()
@@ -130,13 +139,13 @@ def get_slots_live():
                 if active_session:
                     vehicle_id = active_session.vehicle_id
                     session_duration = (now_utc - active_session.entry_time).total_seconds()
-            
             result.append({
                 "slot_id": s.id,
                 "status": s.status,
                 "vehicle_id": vehicle_id,
                 "session_duration_sec": round(session_duration, 2)
             })
+        LIVE_SLOTS_CACHE = {"data": result, "timestamp": now_ts}
         return result
     finally:
         db.close()
@@ -164,6 +173,35 @@ def get_slots_heatmap():
 def get_vehicle_analytics():
     metrics = job_manager.get_profiling_metrics()
     return metrics["detected_classes"]
+
+@app.get("/api/analytics/occupancy-forecast")
+def get_occupancy_forecast():
+    """Simple rolling average forecast based on historical sessions"""
+    db = SessionLocal()
+    try:
+        # Get count of occupied slots over the last 24 hours
+        # For a simple forecast, we just check current average occupancy
+        # In a real app, this would be a time-series model.
+        slots = db.query(ParkingSlot).all()
+        current_occupied = sum(1 for s in slots if s.status == "occupied")
+        
+        # Simple Logic: Current occupancy + random variance for 'forecast'
+        # Or look at last 3 hours of sessions
+        three_hours_ago = datetime.utcnow() - timedelta(hours=3)
+        recent_sessions = db.query(ParkingSession).filter(
+            (ParkingSession.entry_time >= three_hours_ago) | (ParkingSession.exit_time == None)
+        ).count()
+        
+        # Forecast = avg number of slots occupied recently
+        forecast_val = round((recent_sessions + current_occupied) / 2, 1)
+        
+        return {
+            "predicted_occupancy": min(len(slots), forecast_val),
+            "confidence": 0.75,
+            "period": "next_1_hour"
+        }
+    finally:
+        db.close()
 
 @app.get("/api/events")
 def get_events(limit: int = 50):

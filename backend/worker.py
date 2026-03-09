@@ -20,7 +20,8 @@ from config import (
     FRAME_TIMEOUT_SEC, STREAM_DISCONNECT_TIMEOUT_SEC, 
     YOLO_VEHICLE_CLASS_IDS, QUEUE_BACKPRESSURE_THRESHOLD,
     SLOT_STATE_COOLDOWN_SEC, DEBUG_STREAM_ENABLED, MAX_STREAM_RETRIES,
-    TRACK_LOST_TIMEOUT, EVENT_LOG_RETENTION_HOURS, TRACKER_MAP_DISTANCE_THRESHOLD
+    TRACK_LOST_TIMEOUT, EVENT_LOG_RETENTION_HOURS, TRACKER_MAP_DISTANCE_THRESHOLD,
+    TRACKER_MAP_TTL
 )
 import collections
 from collections import deque
@@ -168,8 +169,19 @@ class SlotEvaluationAgent:
             slots = db.query(ParkingSlot).all()
             self._get_or_build_cache(db, slots)
             
-            # Correction 1 — Handle Tracker ID Switching
+            # Correction 1 — Handle Tracker ID Switching & Memory Cleanup
             now_ts = time.time()
+            
+            # --- Memory Cleanup: Remove old tracker mappings ---
+            expired_vid = [vid for vid, (lcx, lcy, lts) in self.last_known_centroids.items() if now_ts - lts > TRACKER_MAP_TTL]
+            for vid in expired_vid:
+                del self.last_known_centroids[vid]
+                # Also remove from tracker_vehicle_map
+                tids_to_del = [tid for tid, v_id in self.tracker_vehicle_map.items() if v_id == vid]
+                for tid in tids_to_del:
+                    del self.tracker_vehicle_map[tid]
+            # ----------------------------------------------------
+
             for d in detections:
                 tid = d.get("track_id")
                 if tid is not None:
@@ -465,6 +477,9 @@ class ProcessingAgent(threading.Thread):
         self.stream_source = "primary"
         self.stream_retry_count = 0
         self.stream_status = "connected"
+        self.camera_fps = 0
+        self.camera_latency = 0
+        self.camera_last_frame_time = 0
 
     def run(self):
         self.running = True
@@ -543,6 +558,15 @@ class ProcessingAgent(threading.Thread):
             self.decode_time_ms = int((time.time() - decode_start) * 1000)
             processed_inferences += 1
             
+            # Camera Metrics
+            current_frame_time = time.time()
+            if self.camera_last_frame_time > 0:
+                frame_delta = current_frame_time - self.camera_last_frame_time
+                self.camera_latency = int(frame_delta * 1000)
+                if frame_delta > 0:
+                    self.camera_fps = round(1.0 / frame_delta, 2)
+            self.camera_last_frame_time = current_frame_time
+
             if not ret:
                 logging.error(f"[Pipeline] Stream broke for job {self.job_id}. Triggering failure cleanup.")
                 self.stream_status = "disconnected"
@@ -749,7 +773,7 @@ class JobManager:
     def get_profiling_metrics(self):
         import psutil
         for agent in self.active_jobs.values():
-            gpu_info = "N/A"
+            gpu_info = None
             if torch.cuda.is_available():
                 gpu_info = f"{torch.cuda.get_device_name(0)} ({torch.cuda.memory_allocated(0)/1024**2:.1f}MB)"
                 
@@ -772,7 +796,10 @@ class JobManager:
                 "stream_status": getattr(agent, "stream_status", "unknown"),
                 "cpu_usage": psutil.cpu_percent(),
                 "memory_usage": psutil.virtual_memory().percent,
-                "gpu_usage": gpu_info
+                "gpu_usage": gpu_info,
+                "camera_fps": getattr(agent, "camera_fps", 0),
+                "camera_latency": getattr(agent, "camera_latency", 0),
+                "camera_last_frame_time": getattr(agent, "camera_last_frame_time", 0)
             }
         return {
             "decode_time_ms": 0, "inference_time_ms": 0, "slot_eval_time_ms": 0, "fps": 0, "queue_pressure": 0,
@@ -781,7 +808,10 @@ class JobManager:
             "stream_source": "none",
             "cpu_usage": psutil.cpu_percent(),
             "memory_usage": psutil.virtual_memory().percent,
-            "gpu_usage": "N/A"
+            "gpu_usage": None,
+            "camera_fps": 0,
+            "camera_latency_ms": 0,
+            "camera_last_frame_time": 0
         }
         
     def get_recent_metrics(self):
