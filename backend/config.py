@@ -1,4 +1,7 @@
 import os
+from datetime import datetime
+
+START_TIME = datetime.utcnow()
 
 # Base paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -6,29 +9,27 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Global Configurations
 MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(BASE_DIR, "models", "yolov8n.pt"))
 MODEL_IMG_SIZE = 416
-FRAME_SKIP_DEFAULT = 12
-MAX_WORKERS = 1
-CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", 0.4))
 MAX_VIDEO_SIZE_MB = 500
 DEBUG_PIPELINE = os.getenv("DEBUG_PIPELINE", "True").lower() == "true"
 
-# Stabilization & Performance
+# 12. Performance Constraints (User specified)
 QUEUE_LIMIT = 50
-PROCESSING_FPS_WINDOW = 10
-MIN_POLYGON_AREA = 500
-FRAME_HASH_SIZE = (64, 64)
-FRAME_TIMEOUT_SEC = 2
-STREAM_DISCONNECT_TIMEOUT_SEC = 10
-QUEUE_BACKPRESSURE_THRESHOLD = 0.8
+MAX_FPS_PROCESSING = 10
+CONFIDENCE_THRESHOLD = 0.25
 SLOT_STATE_COOLDOWN_SEC = 1
+HASH_DISTANCE_THRESHOLD = 5
+MAX_HASH_SKIP_FRAMES = 3
+FORCE_DETECTION_INTERVAL = 5
+PROCESSING_LATENCY_WINDOW = 10
+FPS_STABILITY_WINDOW = 30
+
+# Additional Stability Settings
+YOLO_WARMUP_FRAMES = 5
+MEMORY_WARNING_MB = 1500
+MEMORY_RESTART_MB = 2000
 MAX_STREAM_RETRIES = 5
 TRACK_LOST_TIMEOUT = 3
-EVENT_LOG_RETENTION_HOURS = 24
-MIN_TRACKER_REID_DISTANCE = 50 # Pixels
 TRACKER_MAP_TTL = 10 # Seconds
-LIVE_API_CACHE_TTL = 1 # Seconds
-MIN_FORECAST_SAMPLE_SIZE = 20 # Sessions
-FORECAST_CACHE_TTL = 60 # Seconds
 
 # Stream Sources
 PRIMARY_STREAM_URL = os.getenv("PRIMARY_STREAM_URL", "")

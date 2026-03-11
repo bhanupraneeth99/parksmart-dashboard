@@ -10,13 +10,32 @@ class ParkingSlot(Base):
     floor = Column(String(50))
     status = Column(String(50), default="available")
     polygon = Column(String(500), default="[]")
-    polygon_configured = Column(Integer, default=0) # Using Integer as boolean for SQLite compatibility
+    polygon_configured = Column(Integer, default=0)
     polygon_version = Column(Integer, default=1)
     last_status_change_at = Column(DateTime, default=datetime.datetime.utcnow)
     occupancy_count = Column(Integer, default=0)
-    total_occupied_time = Column(Float, default=0.0) # In seconds
+    total_occupied_time = Column(Float, default=0.0)
     occupied_start_time = Column(DateTime, nullable=True)
     heatmap_count = Column(Integer, default=0)
+    
+    # AI Discovery Fields
+    ai_confidence = Column(Float, default=0.0)
+    slot_source = Column(String(50), default="manual") # manual | ai
+    slot_approved = Column(Integer, default=1)
+    ai_generated_at = Column(DateTime, nullable=True)
+    ai_detection_frames = Column(Integer, default=0)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+class SlotGeometryHistory(Base):
+    __tablename__ = "slot_geometry_history"
+    
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    slot_id = Column(String(50), index=True)
+    polygon = Column(String(500))
+    version = Column(Integer)
+    changed_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class ParkingSession(Base):
     __tablename__ = "parking_sessions"

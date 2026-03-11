@@ -1,239 +1,210 @@
-# Smart Parking Monitoring and Booking System
+# Smart Parking AI — Real-Time Parking Detection & Booking System
 
-## Description
-This system uses Computer Vision (YOLOv8) and FastAPI to analyze CCTV parking lot footage and determine parking slot availability in real-time.
+A full-stack intelligent parking management system using **YOLOv8 computer vision** to detect vehicle occupancy from CCTV footage in real-time. Features an Admin Dashboard for monitoring and a Customer Dashboard for booking available slots.
 
-The application provides:
-- Admin tools for configuring parking slots using polygon coordinates
-- Real-time parking monitoring
-- Customer parking slot booking
-- WebSocket-based real-time updates
-- Heatmap analytics for slot usage
+---
 
-The system detects vehicles in video streams and determines slot occupancy using polygon intersection and centroid logic.
+## 🚀 Quick Start
 
-## Tech Stack
+### One-Command Launch
+
+**Windows (PowerShell):**
+```powershell
+.\run_system.ps1
+```
+
+**Linux / macOS (Bash):**
+```bash
+chmod +x run_system.sh
+./run_system.sh
+```
+
+This automatically sets up the environment, starts all services, and opens the dashboard.
+
+> 📖 For detailed manual setup, see [HOW_TO_RUN.md](HOW_TO_RUN.md)
+
+---
+
+## 🧠 Tech Stack
 
 ### Frontend
-- React
+- React + TypeScript
 - Vite
-- TypeScript
 - TailwindCSS
-- Zustand state management
-- WebSockets
+- Zustand (State Management)
+- WebSockets (Real-Time Updates)
 
 ### Backend
-- FastAPI
-- Uvicorn
-- SQLAlchemy
-- SQLite
-- APScheduler
+- FastAPI + Uvicorn
+- SQLAlchemy + SQLite
+- APScheduler (Booking Expiry)
 
 ### AI / Computer Vision
 - YOLOv8 (Ultralytics)
 - OpenCV
+- MJPEG Video Streaming
 
-### Other Tools
-- Python Virtual Environment
-- Node.js
-- npm
-- MJPEG video streaming
+---
 
-## Core Features
+## ✨ Core Features
 
 ### AI Parking Detection
-The system analyzes CCTV footage using YOLOv8.
+- Detects **Cars, Motorcycles, Buses, and Trucks** using YOLOv8
+- Determines slot occupancy via **centroid-inside-polygon** and **IoU > 0.25**
+- **Temporal smoothing**: 3 consecutive frame detections required to confirm occupancy
 
-Detected vehicle classes:
-- Car
-- Motorcycle
-- Bus
-- Truck
-
-Parking slot occupancy is determined using:
-- Centroid inside polygon
-- Intersection Over Union (IoU > 0.25)
-
-Temporal smoothing ensures a vehicle must be detected for 3 consecutive frames before confirming occupancy.
-
-### Detection Worker System
-The backend includes a `DetectionManager` that spawns multiple `CameraWorker` threads.
-
-Responsibilities:
-- Read frames from video streams
-- Run YOLO detection
-- Evaluate parking slot occupancy
-- Update database
-- Broadcast WebSocket events
-
-Detection runs every few frames to optimize performance.
+### Detection Worker Pipeline
+- `DetectionManager` spawns `CameraWorker` threads
+- Reads video frames → Runs YOLO inference → Evaluates slot occupancy → Updates database → Broadcasts via WebSocket
 
 ### Real-Time WebSocket Updates
-Slot status updates are broadcast to all connected clients.
-
-Example event:
 ```json
 {
   "event": "slot_update",
-  "slot_id": 12,
+  "slot_id": "S1",
   "status": "occupied",
-  "timestamp": "ISO_TIME"
+  "timestamp": "2026-03-11T09:00:00Z"
 }
 ```
-Frontend dashboards update instantly without polling.
 
-### Admin Dashboard
-Admin interface allows:
-- Live CCTV monitoring
+### Admin Dashboard (`/admin`)
+- Live CCTV video monitoring
 - Parking slot polygon configuration
-- Slot editing and deletion
-- Heatmap analytics of slot usage
+- Slot editing, deletion, and heatmap analytics
 
-Admins define parking slots by clicking 4 points on the video frame to create polygon coordinates.
-
-### Customer Dashboard
-Customers can:
-- View live parking slot availability
+### Customer Dashboard (`/dashboard`)
+- View live slot availability
 - Book available slots
-- Cancel bookings
-- View booking history
+- Cancel bookings and view history
 
-Slot colors:
-- 🟢 **Green** → Vacant
-- 🟡 **Yellow** → Reserved
-- 🔴 **Red** → Occupied
+Slot colors: 🟢 Available → 🟡 Reserved → 🔴 Occupied
 
 ### Booking System
-Slot lifecycle:
-`Vacant` → `Reserved` → `Occupied`
+- Reservations auto-expire after 10 minutes if the vehicle doesn't arrive
+- Background scheduler handles expired reservations
 
-Reservations expire automatically after 10 minutes if the vehicle does not arrive.
-A background scheduler checks for expired reservations.
+---
 
-## System Architecture
-
-### Architecture Flow
+## 🏗️ System Architecture
 
 ```text
-CCTV Camera
-      ↓
-CameraWorker (YOLO Detection)
-      ↓
-Slot Occupancy Engine
-      ↓
+CCTV / Video File
+       ↓
+CameraWorker (YOLOv8 Detection)
+       ↓
+Slot Occupancy Engine (Polygon + Centroid)
+       ↓
 SQLite Database
-      ↓
+       ↓
 FastAPI API Server
-      ↓
+       ↓
 WebSocket Broadcast
-      ↓
-React Frontend
+       ↓
+React Frontend (Admin + Customer Dashboards)
 ```
 
-- **CameraWorker**: Captures video frames and runs YOLOv8 inference. Calculates polygon intersection and centroid tracking.
-- **Slot Occupancy Engine**: Applies temporal smoothing (3 consecutive detections) and maintains slot states.
-- **FastAPI API Server**: Provides REST endpoints for slot management, booking operations, and state querying.
-- **WebSocket Broadcast**: Dispatches JSON events globally to all connected clients instantly.
-- **React Frontend**: Subscribes to WebSockets to dynamically re-render maps and UI without polling.
+---
 
-## Database Schema
-
-### Users
-- `id`
-- `name`
-- `email`
-- `password_hash`
-- `role`
-- `created_at`
-
-### ParkingSlots
-- `id`
-- `slot_number`
-- `polygon`
-- `status`
-- `heatmap_count`
-- `last_updated`
-
-### Bookings
-- `id`
-- `user_id`
-- `slot_id`
-- `status`
-- `booking_time`
-- `expiry_time`
-
-## Installation Guide
-
-### Clone Project
-```bash
-git clone <repo>
-cd parking-ai-system
-```
-
-### Backend Setup
-```bash
-cd backend
-python -m venv venv
-```
-
-Activate virtual environment:
-- **Windows**: `venv\Scripts\activate`
-- **Mac/Linux**: `source venv/bin/activate`
-
-```bash
-pip install -r requirements.txt
-```
-
-Start backend:
-```bash
-uvicorn main:app --reload
-```
-
-- Backend runs on: `http://127.0.0.1:8000`
-- API docs: `http://127.0.0.1:8000/docs`
-
-### Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend runs on: `http://localhost:5173`
-
-## Running the System
-
-1. Start backend server
-2. Start frontend dev server
-3. Open Admin Dashboard (`/admin`)
-4. Configure parking slot polygons
-5. Upload parking video feed
-6. Monitor slot occupancy in real time
-
-Customers can then open the Customer Dashboard (`/dashboard`) and book parking slots interactively.
-
-## Project Structure
+## 📁 Project Structure
 
 ```text
-parking-ai-system
+parksmart-dashboard/
 │
-├── backend
-│   ├── main.py
-│   ├── worker.py
-│   ├── models.py
-│   ├── routes
-│   │   ├── booking.py
-│   │   ├── slots.py
-│   │   └── auth.py
+├── backend/
+│   ├── main.py                  # FastAPI application entry point
+│   ├── worker.py                # AI detection worker pipeline
+│   ├── models.py                # SQLAlchemy database models
+│   ├── database.py              # Database connection and session
+│   ├── init_db_and_seed.py      # Database initialization and seeding
+│   ├── routes/
+│   │   ├── booking.py           # Booking API endpoints
+│   │   ├── slots.py             # Parking slot API endpoints
+│   │   ├── upload_video.py      # Video upload and demo trigger
+│   │   ├── debug.py             # Pipeline diagnostics
+│   │   └── system.py            # System health endpoints
+│   ├── services/
+│   │   ├── slot_service.py      # Slot evaluation logic
+│   │   ├── detection_service.py # YOLO detection service
+│   │   └── tracking_service.py  # Vehicle tracking
+│   └── utils/
+│       ├── frame_utils.py       # Frame processing and overlay
+│       ├── geometry_utils.py    # Polygon geometry helpers
+│       └── logging_utils.py     # Logging configuration
 │
-├── frontend
-│   ├── src
-│   │   ├── pages
-│   │   │   ├── AdminDashboard.tsx
-│   │   │   └── UserDashboard.tsx
-│   │   ├── store
-│   │   └── components
+├── src/                         # React frontend source
+│   ├── pages/
+│   │   ├── AdminDashboard.tsx   # Admin monitoring interface
+│   │   └── Index.tsx            # Customer booking interface
+│   ├── store/
+│   │   └── parkingStore.ts      # Zustand state management
+│   └── components/              # Reusable UI components
 │
-└── database
-    └── parking.db
+├── run_system.ps1               # Windows one-command startup
+├── run_system.sh                # Linux one-command startup
+├── worker_watchdog.py           # Auto-recovery watchdog
+├── verify_system.py             # System health verification
+├── trigger_worker.py            # Manual worker trigger
+├── parking_video.mp4            # Demo parking video
+└── HOW_TO_RUN.md                # Detailed setup guide
 ```
+
+---
+
+## 🗄️ Database Schema
+
+### ParkingSlot
+| Column | Type | Description |
+|--------|------|-------------|
+| id | String | Slot ID (S1–S7) |
+| number | String | Slot number |
+| status | String | available / occupied / reserved |
+| polygon | JSON | 4-point polygon coordinates |
+
+### Booking
+| Column | Type | Description |
+|--------|------|-------------|
+| id | Integer | Booking ID |
+| slot_id | String | Foreign key to ParkingSlot |
+| status | String | active / expired / cancelled |
+| booking_time | DateTime | When booking was made |
+| expiry_time | DateTime | Auto-expiry timestamp |
+
+### ProcessingJob
+| Column | Type | Description |
+|--------|------|-------------|
+| job_id | String | Unique job identifier |
+| video_path | String | Path to video file |
+| status | String | processing / completed / failed |
+
+---
+
+## 🔌 API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/system/health` | System health check |
+| GET | `/api/debug/pipeline` | AI pipeline diagnostics |
+| GET | `/api/slots` | List all parking slots |
+| GET | `/api/slots/{id}` | Get specific slot |
+| POST | `/api/jobs/start-demo` | Trigger AI worker |
+| GET | `/api/video/stream` | Live MJPEG video stream |
+| POST | `/api/bookings` | Create a booking |
+| GET | `/api/bookings` | List bookings |
+
+---
+
+## 🛠️ Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Port 5173 refused | Run `npm run dev` in project root |
+| Port 8000 refused | Run `uvicorn main:app` in backend/ |
+| Video not found | Place `parking_video.mp4` in project root |
+| Database errors | Delete `parksmart.db` and re-run `python init_db_and_seed.py` |
+| Worker stuck | Run `python worker_watchdog.py` for auto-recovery |
+
+---
+
+## 📄 License
+
+This project is for educational and demonstration purposes.
