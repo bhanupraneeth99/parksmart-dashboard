@@ -12,7 +12,7 @@ from utils.logging_utils import log_event
 
 DESIGN_WIDTH = 960
 DESIGN_HEIGHT = 540
-DEMO_MODE = True
+DEMO_MODE = False
 
 def normalize_slot_id(slot_id: str) -> str:
     """Normalize slot ID by removing parentheses and extra whitespace."""
@@ -174,21 +174,24 @@ class SlotService:
             self.buffers[slot_id].append(slot_occupied_in_frame)
             current_hits = sum(self.buffers[slot_id])
             
-            # Slot becomes OCCUPIED when >= 2 of last 3 frames detect a vehicle
-            is_currently_occupied = (current_hits >= 2)
+            # Transition Logic:
+            # - If currently RESERVED and a car is detected (temporal stability), move to OCCUPIED.
+            # - If currently RESERVED and NO car is detected, STAY RESERVED (waiting for user).
+            # - If currently OCCUPIED and car leaves, move to AVAILABLE.
+            # - If currently AVAILABLE and car detected, move to OCCUPIED.
             
-            if is_currently_occupied:
-                new_status = "occupied"
-            else:
-                new_status = "available"
-
-            # SECTION: Emergency Demo Configuration Override
-            if DEMO_MODE:
-                forced_available = ["S2", "S5"]
-                if slot_id in forced_available:
-                    new_status = "available"
-                else:
+            current_status = slot_data["status"]
+            
+            if current_status == "reserved":
+                if is_currently_occupied:
                     new_status = "occupied"
+                else:
+                    new_status = "reserved" # Keep reserved if no car yet
+            else:
+                if is_currently_occupied:
+                    new_status = "occupied"
+                else:
+                    new_status = "available"
 
             current_status = slot_data["status"]
 

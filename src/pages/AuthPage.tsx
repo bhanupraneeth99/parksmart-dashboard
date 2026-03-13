@@ -46,8 +46,7 @@ export default function AuthPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ background: 'var(--gradient-hero)' }}>
             <Car className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-foreground">ParkSmart</h1>
-          <p className="text-muted-foreground mt-1">Smart Parking Management System</p>
+          <h1 className="text-2xl font-display font-bold text-foreground text-center">A Real-Time Intelligent Parking Management System using YOLOv11 and FastAPI</h1>
         </div>
 
         <div className="bg-card rounded-2xl border border-border p-8 card-shadow">

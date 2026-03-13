@@ -60,7 +60,7 @@ def log_event(category, message):
     logging.info(f"[{category.upper()}] {message}")
 
 # --- AI Model Initialization ---
-MODEL_PATH = os.path.join("backend", "models", "yolov8n.pt")
+MODEL_PATH = os.path.join("backend", "models", "yolo11n.pt")
 try:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     global_model = YOLO(MODEL_PATH).to(device)

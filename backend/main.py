@@ -74,7 +74,7 @@ async def lifespan(app: FastAPI):
     # --- SHUTDOWN ---
     log_event("shutdown", "System shutting down...")
 
-app = FastAPI(title="Smart Parking AI System", lifespan=lifespan)
+app = FastAPI(title="A Real-Time Intelligent Parking Management System using YOLOv11 and FastAPI", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

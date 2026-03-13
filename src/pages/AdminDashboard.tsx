@@ -209,8 +209,8 @@ export default function AdminDashboard() {
   const downloadCSV = () => {
     const headers = ['Name', 'Phone', 'Vehicle', 'Slot', 'Booking Time', 'Expiry Time', 'Status'];
     const rows = bookings.map(b => [
-      b.customerName, b.phone, b.vehicleNumber, b.slotId,
-      new Date(b.bookingTime).toLocaleString(), new Date(b.expiryTime).toLocaleString(), b.status,
+      b.name, b.phone, b.vehicle_number, b.slot_id,
+      new Date(b.booking_time).toLocaleString(), new Date(b.expiry_time).toLocaleString(), b.status,
     ]);
     const csv = [headers, ...rows].map(r => r.join(',').replace(/"/g, '""')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -243,7 +243,7 @@ export default function AdminDashboard() {
               <Car className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <span className="font-display font-bold text-foreground">ParkSmart</span>
+              <span className="font-display font-bold text-foreground">A Real-Time Intelligent Parking Management System using YOLOv11 and FastAPI</span>
               <span className="text-xs text-muted-foreground ml-2">Admin Dashboard</span>
             </div>
           </div>
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
                 <Video className="w-5 h-5 text-primary" /> Parking Video Analysis & Queue
               </h2>
               <p className="text-sm text-muted-foreground max-w-xl">
-                Upload a <code>.mp4</code> video feed to trigger the Distributed YOLOv8 AI pipeline.
+                Upload a <code>.mp4</code> video feed to trigger the Distributed YOLOv11 AI pipeline.
               </p>
             </div>
 
@@ -481,6 +481,53 @@ export default function AdminDashboard() {
                   ))}
                   {jobHistory.length === 0 && (
                     <tr><td colSpan={6} className="py-8 text-center text-muted-foreground italic">No processing history recorded</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* Live & Previous Bookings Table */}
+        <section>
+          <div className="flex items-center justify-between mb-4 mt-8">
+            <h2 className="text-lg font-display font-bold text-foreground flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" /> Live & Previous Bookings Monitoring
+            </h2>
+            <Button onClick={downloadCSV} variant="outline" size="sm" className="gap-2">
+              <Download className="w-4 h-4" /> Export Excel
+            </Button>
+          </div>
+          <div className="bg-card rounded-2xl border border-border card-shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/50">
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Customer Name</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Phone</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Vehicle Number</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Slot ID</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Booking Time</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Expiry Time</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookings.map((b, i) => (
+                    <tr key={i} className={`border-b border-border/60 hover:bg-muted/30 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/10'}`}>
+                      <td className="py-3 px-4 font-medium text-foreground">{b.name}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{b.phone}</td>
+                      <td className="py-3 px-4 font-mono font-semibold text-blue-600">{b.vehicle_number}</td>
+                      <td className="py-3 px-4">
+                         <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">{b.slot_id}</Badge>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">{b.booking_time ? new Date(b.booking_time).toLocaleString() : 'N/A'}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{b.expiry_time ? new Date(b.expiry_time).toLocaleString() : 'N/A'}</td>
+                      <td className="py-3 px-4">{statusBadge(b.status)}</td>
+                    </tr>
+                  ))}
+                  {bookings.length === 0 && (
+                    <tr><td colSpan={7} className="py-8 text-center text-muted-foreground italic">No booking records found</td></tr>
                   )}
                 </tbody>
               </table>

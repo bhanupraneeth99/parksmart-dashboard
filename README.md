@@ -1,6 +1,6 @@
-# Smart Parking AI — Real-Time Parking Detection & Booking System
+# A Real-Time Intelligent Parking Management System using YOLOv11 and FastAPI
 
-A full-stack intelligent parking management system using **YOLOv8 computer vision** to detect vehicle occupancy from CCTV footage in real-time. Features an Admin Dashboard for monitoring and a Customer Dashboard for booking available slots.
+A full-stack intelligent parking management system using **YOLOv11 computer vision** to detect vehicle occupancy from CCTV footage in real-time. Features an Admin Dashboard for monitoring and a Customer Dashboard for booking available slots.
 
 ---
 
@@ -40,7 +40,7 @@ This automatically sets up the environment, starts all services, and opens the d
 - APScheduler (Booking Expiry)
 
 ### AI / Computer Vision
-- YOLOv8 (Ultralytics)
+- YOLOv11 (Ultralytics)
 - OpenCV
 - MJPEG Video Streaming
 
@@ -49,7 +49,7 @@ This automatically sets up the environment, starts all services, and opens the d
 ## ✨ Core Features
 
 ### AI Parking Detection
-- Detects **Cars, Motorcycles, Buses, and Trucks** using YOLOv8
+- Detects **Cars, Motorcycles, Buses, and Trucks** using YOLOv11
 - Determines slot occupancy via **centroid-inside-polygon** and **IoU > 0.25**
 - **Temporal smoothing**: 3 consecutive frame detections required to confirm occupancy
 
@@ -90,7 +90,7 @@ Slot colors: 🟢 Available → 🟡 Reserved → 🔴 Occupied
 ```text
 CCTV / Video File
        ↓
-CameraWorker (YOLOv8 Detection)
+CameraWorker (YOLOv11 Detection)
        ↓
 Slot Occupancy Engine (Polygon + Centroid)
        ↓

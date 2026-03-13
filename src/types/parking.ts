@@ -13,13 +13,12 @@ export interface ParkingSlot {
 
 export interface Booking {
   id: string;
-  customerName: string;
+  name: string;
   phone: string;
-  vehicleNumber: string;
-  slotId: string;
-  slotNumber: string;
-  bookingTime: Date;
-  expiryTime: Date;
+  vehicle_number: string;
+  slot_id: string;
+  booking_time: string;
+  expiry_time: string;
   status: 'active' | 'expired' | 'cancelled' | 'occupied';
 }
 

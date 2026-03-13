@@ -21,7 +21,7 @@ export default function UserDashboard() {
     connectWebSocket();
     syncSlotsFromApi();
     fetchBookings(currentUser.email);
-  }, [currentUser, navigate, connectWebSocket, syncSlotsFromApi, fetchBookings]);
+  }, [currentUser]); // Only depend on currentUser
 
   if (!currentUser) return null;
 
@@ -46,7 +46,7 @@ export default function UserDashboard() {
               <Car className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <span className="font-display font-bold text-foreground">ParkSmart</span>
+              <span className="font-display font-bold text-foreground">A Real-Time Intelligent Parking Management System using YOLOv11 and FastAPI</span>
               <span className="text-xs text-muted-foreground ml-2">User Portal</span>
             </div>
           </div>
@@ -91,16 +91,16 @@ export default function UserDashboard() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <MapPin className="w-4 h-4 text-primary" />
-                        <span className="font-display font-bold text-xl text-foreground">{booking.slotId}</span>
+                        <span className="font-display font-bold text-xl text-foreground">{booking.slot_id}</span>
                         {statusBadge(booking.status)}
                       </div>
-                      <p className="text-sm text-muted-foreground">Vehicle: <strong className="text-foreground">{booking.vehicleNumber}</strong></p>
-                      <p className="text-sm text-muted-foreground">Booked: {new Date(booking.bookingTime).toLocaleTimeString()}</p>
+                      <p className="text-sm text-muted-foreground">Vehicle: <strong className="text-foreground">{booking.vehicle_number}</strong></p>
+                      <p className="text-sm text-muted-foreground">Booked: {new Date(booking.booking_time).toLocaleTimeString()}</p>
                     </div>
                   </div>
 
                   <CountdownTimer
-                    expiryTime={new Date(booking.expiryTime)}
+                    expiryTime={new Date(booking.expiry_time)}
                     onExpire={() => fetchBookings(currentUser.email)}
                   />
 
