@@ -32,7 +32,7 @@ export default function AdminDashboard() {
     currentUser, slots, bookings, stats, isLoadingSlots, analysisStatus, ws,
     systemHealth, currentJob, activeJobId,
     logout, syncSlotsFromApi, syncStatsFromApi, syncAnalysisStatus, fetchSystemHealth, fetchBookings, connectWebSocket, updateSlot,
-    pauseJob, resumeJob, cancelJob, reseedSlots
+    cancelBooking, pauseJob, resumeJob, cancelJob, reseedSlots
   } = useParkingStore();
 
   const [isUploading, setIsUploading] = useState(false);
@@ -71,14 +71,14 @@ export default function AdminDashboard() {
 
   const fetchJobHistory = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/jobs');
+      const res = await fetch('/api/jobs');
       if (res.ok) setJobHistory(await res.json());
     } catch { }
   };
 
   const handleStartAnalysis = async () => {
     try {
-      await fetch('http://localhost:8000/start-analysis', { method: 'POST' });
+      await fetch('/start-analysis', { method: 'POST' });
       toast.success("Analysis started");
       setTimeout(triggerRefresh, 1000);
     } catch (e) {
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
 
   const handleStopAnalysis = async () => {
     try {
-      await fetch('http://localhost:8000/stop-analysis', { method: 'POST' });
+      await fetch('/stop-analysis', { method: 'POST' });
       toast.warning("Analysis stopped");
       setTimeout(triggerRefresh, 1000);
     } catch (e) {
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
 
   const handleDeleteSlot = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/slots/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/slots/${id}`, { method: 'DELETE' });
       if (res.ok) {
         toast.success("Polygon removed and slot reset");
         if (drawingSlot === id) {
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:8000/upload-parking-video', {
+      const res = await fetch('/upload-parking-video', {
         method: 'POST',
         body: formData,
       });
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
 
             <div className={`w-full max-w-4xl bg-black rounded-lg overflow-hidden flex items-center justify-center min-h-[400px] relative ${drawingSlot ? 'cursor-crosshair ring-4 ring-blue-500 rounded-lg' : ''}`}>
               <img
-                src="http://localhost:8000/video-feed"
+                src="/video-feed"
                 alt="Live Parking Feed MJPEG"
                 className="w-full max-h-[600px] object-contain"
                 onClick={handleVideoClick}

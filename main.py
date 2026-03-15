@@ -16,7 +16,7 @@ def kill_process_by_name(name):
         pass
 
 def run_backend():
-    print("Starting Backend API...")
+    print("Starting Unified Smart Parking Application...")
     venv_python = os.path.join("backend", "venv", "Scripts", "python.exe") if sys.platform == "win32" else os.path.join("backend", "venv", "bin", "python")
     if not os.path.exists(venv_python):
         print("Backend virtual environment not found. Please run setup first.")
@@ -28,21 +28,13 @@ def run_backend():
         cwd="backend"
     )
 
-def run_frontend():
-    print("Starting Frontend (Vite)...")
-    # Use shell=True for npm on Windows
-    return subprocess.Popen(
-        ["npm", "run", "dev"],
-        shell=(sys.platform == "win32")
-    )
-
 def wait_for_backend():
-    print("Waiting for backend to be ready...")
+    print("Waiting for application to be ready...")
     for _ in range(30):
         try:
             response = requests.get("http://localhost:8000/api/system/health", timeout=2)
             if response.status_code == 200:
-                print("Backend is online!")
+                print("Application is online!")
                 return True
         except requests.exceptions.RequestException:
             pass
@@ -54,33 +46,28 @@ def main():
     kill_process_by_name("uvicorn")
     kill_process_by_name("node")
     
-    # 2. Start Backend
+    # 2. Start Unified Backend (Serves Frontend)
     backend_proc = run_backend()
     
-    # 3. Wait for Backend
+    # 3. Wait for Readiness
     if not wait_for_backend():
-        print("Timeout: Backend failed to start.")
+        print("Timeout: Application failed to start.")
         backend_proc.terminate()
         sys.exit(1)
         
-    # 4. Start Frontend
-    frontend_proc = run_frontend()
+    # 4. Open Browser to Unified URL
+    print("Launching Integrated Dashboard...")
+    webbrowser.open("http://localhost:8000/admin")
     
-    # 5. Open Browser
-    print("Launching Admin Dashboard...")
-    time.sleep(3) # Give Vite a moment to bind
-    webbrowser.open("http://localhost:5173/admin")
-    
-    print("\n--- System is running! ---")
-    print("Press Ctrl+C to stop both servers.")
+    print("\n--- Project is running as a Single Application on Port 8000! ---")
+    print("Press Ctrl+C to stop the application.")
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\nStopping servers...")
+        print("\nStopping application...")
         backend_proc.terminate()
-        frontend_proc.terminate()
         sys.exit(0)
 
 if __name__ == "__main__":
