@@ -17,7 +17,8 @@ from websocket_manager import manager
 from config import (
     QUEUE_LIMIT, MAX_FPS_PROCESSING, MEMORY_RESTART_MB, 
     MAX_STREAM_RETRIES, HASH_DISTANCE_THRESHOLD, PROCESSING_LATENCY_WINDOW,
-    MAX_HASH_SKIP_FRAMES, FPS_STABILITY_WINDOW
+    MAX_HASH_SKIP_FRAMES, FPS_STABILITY_WINDOW, CONFIDENCE_THRESHOLD,
+    MODEL_IMG_SIZE
 )
 
 from services.detection_service import get_detection_service
@@ -277,7 +278,7 @@ class ProcessingAgent(threading.Thread):
                                 except (TypeError, AttributeError):
                                     conf = 0.0
                                     
-                                if conf < 0.35:
+                                if conf < CONFIDENCE_THRESHOLD:
                                     continue
                                     
                                 x1, y1, x2, y2 = map(float, b.xyxy[0].cpu().numpy())

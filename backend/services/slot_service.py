@@ -180,6 +180,7 @@ class SlotService:
             # - If currently OCCUPIED and car leaves, move to AVAILABLE.
             # - If currently AVAILABLE and car detected, move to OCCUPIED.
             
+            is_currently_occupied = (current_hits >= 2)
             current_status = slot_data["status"]
             
             if current_status == "reserved":

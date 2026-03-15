@@ -510,6 +510,7 @@ export default function AdminDashboard() {
                     <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Booking Time</th>
                     <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Expiry Time</th>
                     <th className="text-left py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
+                    <th className="text-right py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -524,6 +525,27 @@ export default function AdminDashboard() {
                       <td className="py-3 px-4 text-muted-foreground">{b.booking_time ? new Date(b.booking_time).toLocaleString() : 'N/A'}</td>
                       <td className="py-3 px-4 text-muted-foreground">{b.expiry_time ? new Date(b.expiry_time).toLocaleString() : 'N/A'}</td>
                       <td className="py-3 px-4">{statusBadge(b.status)}</td>
+                      <td className="py-3 px-4 text-right">
+                        {b.status === 'active' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={async () => {
+                              const success = await cancelBooking(parseInt(b.id));
+                              if (success) {
+                                toast.success("Booking cancelled successfully");
+                                fetchBookings();
+                                syncSlotsFromApi();
+                              } else {
+                                toast.error("Failed to cancel booking");
+                              }
+                            }}
+                            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 h-8 gap-1.5"
+                          >
+                            <XCircle className="w-3.5 h-3.5" /> Cancel
+                          </Button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {bookings.length === 0 && (
@@ -563,17 +585,41 @@ export default function AdminDashboard() {
                       <td className="py-3 px-4">
                         {s.polygon_configured ? <Badge variant="outline" className="text-green-600 bg-green-50">Yes</Badge> : <Badge variant="outline" className="text-red-500 bg-red-50">No</Badge>}
                       </td>
-                      <td className="py-3 px-4 flex justify-end gap-2">
+                      <td className="py-3 px-4 flex justify-end gap-2 text-right">
+                        {s.status === 'reserved' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              const activeBooking = bookings.find(b => b.slot_id === s.id && b.status === 'active');
+                              if (activeBooking) {
+                                const success = await cancelBooking(parseInt(activeBooking.id));
+                                if (success) {
+                                  toast.success(`Slot ${s.id} released`);
+                                  fetchBookings();
+                                  syncSlotsFromApi();
+                                } else {
+                                  toast.error("Failed to release slot");
+                                }
+                              } else {
+                                toast.error("No active booking found for this slot");
+                              }
+                            }}
+                            className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 h-8 gap-1.5"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" /> Release
+                          </Button>
+                        )}
                         <Button
                           variant={drawingSlot === s.id ? "default" : "outline"}
                           size="sm"
                           onClick={() => { setDrawingSlot(drawingSlot === s.id ? null : s.id); setPoints([]); }}
-                          className="gap-1.5"
+                          className="h-8 gap-1.5"
                         >
                           <MousePointerClick className="w-3.5 h-3.5" />
                           {drawingSlot === s.id ? "Cancel Draw" : "Draw Polygon"}
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteSlot(s.id)} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteSlot(s.id)} className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </td>

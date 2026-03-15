@@ -94,12 +94,15 @@ app.include_router(debug.router)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    log_event("system", "[WS] New connection attempt")
     await manager.connect(websocket)
+    log_event("system", f"[WS] Client connected. Total: {len(manager.active_connections)}")
     try:
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+        log_event("system", f"[WS] Client disconnected. Total: {len(manager.active_connections)}")
 
 if __name__ == "__main__":
     import uvicorn

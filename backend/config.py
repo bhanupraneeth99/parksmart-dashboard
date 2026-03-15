@@ -7,8 +7,8 @@ START_TIME = datetime.utcnow()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Global Configurations
-MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(BASE_DIR, "models", "yolov8n.pt"))
-MODEL_IMG_SIZE = 416
+MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(BASE_DIR, "models", "yolo11n.pt"))
+MODEL_IMG_SIZE = 640
 MAX_VIDEO_SIZE_MB = 500
 DEBUG_PIPELINE = os.getenv("DEBUG_PIPELINE", "True").lower() == "true"
 
@@ -36,5 +36,5 @@ PRIMARY_STREAM_URL = os.getenv("PRIMARY_STREAM_URL", "")
 FALLBACK_STREAM_URL = os.getenv("FALLBACK_STREAM_URL", "")
 DEBUG_STREAM_ENABLED = os.getenv("DEBUG_STREAM_ENABLED", "True").lower() == "true"
 
-ALLOWED_VEHICLE_CLASSES = ["car", "truck", "bus", "motorcycle"]
-YOLO_VEHICLE_CLASS_IDS = [2, 3, 5, 7] # COCO: car, motorcycle, bus, truck
+ALLOWED_VEHICLE_CLASSES = ["car", "truck", "bus", "motorcycle", "cell phone"]
+YOLO_VEHICLE_CLASS_IDS = [2, 3, 5, 7, 67] # COCO: car, motorcycle, bus, truck, cell phone (top-down bias)
