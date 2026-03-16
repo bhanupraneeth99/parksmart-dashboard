@@ -118,7 +118,7 @@ export const useParkingStore = create<ParkingStore>((set, get) => ({
 
   bookSlot: async (data) => {
     try {
-      const res = await fetch(`${API_URL}/book-slot`, {
+      const res = await fetch(`${API_URL}/api/book-slot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -133,7 +133,7 @@ export const useParkingStore = create<ParkingStore>((set, get) => ({
 
   cancelBooking: async (bookingId) => {
     try {
-      const res = await fetch(`${API_URL}/cancel-booking/${bookingId}`, { method: 'POST' });
+      const res = await fetch(`${API_URL}/api/cancel-booking/${bookingId}`, { method: 'POST' });
       if (res.ok) {
         await get().fetchBookings();
         return true;
@@ -144,8 +144,8 @@ export const useParkingStore = create<ParkingStore>((set, get) => ({
 
   fetchBookings: async (phone?: string) => {
     try {
-      let url = `${API_URL}/bookings`;
-      if (phone) url = `${API_URL}/booking-history?phone=${encodeURIComponent(phone)}`;
+      let url = `${API_URL}/api/bookings`;
+      if (phone) url = `${API_URL}/api/booking-history?phone=${encodeURIComponent(phone)}`;
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -185,7 +185,7 @@ export const useParkingStore = create<ParkingStore>((set, get) => ({
       const response = await fetch(`${API_URL}/api/slots/stats`); // Updated to match consolidated router if needed, or keeping legacy
       if (!response.ok) {
         // Fallback to slot-stats if the prefix hasn't been moved yet
-        const fb = await fetch(`${API_URL}/slot-stats`);
+        const fb = await fetch(`${API_URL}/api/slot-stats`);
         if (fb.ok) { set({ stats: await fb.json() }); return; }
       }
       const data = await response.json();
@@ -195,7 +195,7 @@ export const useParkingStore = create<ParkingStore>((set, get) => ({
 
   syncAnalysisStatus: async () => {
     try {
-      const response = await fetch(`${API_URL}/analysis-status`);
+      const response = await fetch(`${API_URL}/api/analysis-status`);
       if (response.ok) {
         const data = await response.json();
         set({

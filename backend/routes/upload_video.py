@@ -80,12 +80,12 @@ def upload_video(file: UploadFile, db: Session = Depends(get_db)):
         }
     }
 
-@router.get("/api/jobs")
+@router.get("/jobs")
 def list_jobs(db: Session = Depends(get_db)):
     jobs = db.query(ProcessingJob).order_by(ProcessingJob.created_at.desc()).all()
     return jobs
 
-@router.post("/api/jobs/{job_id}/pause")
+@router.post("/jobs/{job_id}/pause")
 def pause_job(job_id: str, db: Session = Depends(get_db)):
     job = db.query(ProcessingJob).filter(ProcessingJob.job_id == job_id).first()
     if not job:
@@ -96,7 +96,7 @@ def pause_job(job_id: str, db: Session = Depends(get_db)):
         job_manager.pause_job(job.id)
     return {"message": "Job paused"}
 
-@router.post("/api/jobs/{job_id}/resume")
+@router.post("/jobs/{job_id}/resume")
 def resume_job(job_id: str, db: Session = Depends(get_db)):
     job = db.query(ProcessingJob).filter(ProcessingJob.job_id == job_id).first()
     if not job:
@@ -107,7 +107,7 @@ def resume_job(job_id: str, db: Session = Depends(get_db)):
         job_manager.resume_job(job.id)
     return {"message": "Job resumed"}
 
-@router.post("/api/jobs/{job_id}/cancel")
+@router.post("/jobs/{job_id}/cancel")
 def cancel_job(job_id: str, db: Session = Depends(get_db)):
     job = db.query(ProcessingJob).filter(ProcessingJob.job_id == job_id).first()
     if not job:
@@ -151,11 +151,18 @@ def video_feed():
 
 @router.post("/start-analysis")
 def start_analysis(db: Session = Depends(get_db)):
-    # Look for last uploaded file or paused jobs
+    # 1. Look for paused jobs to resume
     job = db.query(ProcessingJob).filter(ProcessingJob.status == "paused").first()
     if job:
         return resume_job(job.job_id, db)
-    return {"message": "No active tasks found."}
+    
+    # 2. Check if a job is already processing
+    active = db.query(ProcessingJob).filter(ProcessingJob.status == "processing").first()
+    if active:
+        return {"message": "Analysis already running", "job_id": active.job_id}
+        
+    # 3. Fallback: Start a Demo Job
+    return start_demo_job(None, db)
 
 @router.post("/stop-analysis")
 def stop_analysis(db: Session = Depends(get_db)):
@@ -166,7 +173,7 @@ def stop_analysis(db: Session = Depends(get_db)):
 
     return {"message": "Analysis stopped"}
 
-@router.post("/api/jobs/start-demo")
+@router.post("/jobs/start-demo")
 def start_demo_job(data: dict = None, db: Session = Depends(get_db)):
     # Locate parking_video.mp4 in root
     video_filename = "parking_video.mp4"

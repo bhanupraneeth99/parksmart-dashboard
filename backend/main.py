@@ -88,11 +88,11 @@ app.add_middleware(
 # Routers
 from routes import slots, booking, admin, upload_video, system, debug
 app.include_router(slots.router)
-app.include_router(booking.router)
-app.include_router(admin.router)
-app.include_router(upload_video.router)
+app.include_router(booking.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
+app.include_router(upload_video.router, prefix="/api")
 app.include_router(system.router)
-app.include_router(debug.router)
+app.include_router(debug.router, prefix="/api")
 
 # --- Serve Frontend (SPA Support) ---
 # Ensure this is after all API routes
@@ -106,17 +106,17 @@ if os.path.exists(DIST_DIR):
 
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
-        # If it's an API route or websocket, let it pass (though routers should handle it first)
-        if full_path.startswith("api/") or full_path == "ws" or full_path == "video-feed":
-            return None # This won't actually happen due to order, but for clarity
-        
+        logging.info(f"Serving frontend for path: {full_path}")
         # Check if file exists in dist
         file_path = os.path.join(DIST_DIR, full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)
         
         # Otherwise serve index.html for React Router
-        return FileResponse(os.path.join(DIST_DIR, "index.html"))
+        index_path = os.path.join(DIST_DIR, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        return {"error": f"index.html not found at {index_path}"}
 else:
     logging.warning(f"Frontend dist directory not found at {DIST_DIR}. Frontend will not be served.")
 

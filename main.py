@@ -22,15 +22,21 @@ def run_backend():
         print("Backend virtual environment not found. Please run setup first.")
         sys.exit(1)
     
-    # Run uvicorn in a separate process
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
+    
+    log_file = open("backend_output.log", "w", buffering=1)
     return subprocess.Popen(
-        [venv_python, "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],
-        cwd="backend"
+        [venv_python, "-u", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],
+        cwd="backend",
+        stdout=log_file,
+        stderr=subprocess.STDOUT,
+        env=env
     )
 
 def wait_for_backend():
     print("Waiting for application to be ready...")
-    for _ in range(30):
+    for i in range(30):
         try:
             response = requests.get("http://localhost:8000/api/system/health", timeout=2)
             if response.status_code == 200:
@@ -38,24 +44,43 @@ def wait_for_backend():
                 return True
         except requests.exceptions.RequestException:
             pass
+        
+        if os.path.exists("backend_output.log"):
+            with open("backend_output.log", "r") as f:
+                content = f.read()
+                if "ERROR" in content or "Traceback" in content:
+                    # Only show if there's a significant change or error
+                    if "address already in use" in content.lower() or "10048" in content:
+                        print("Port 8000 is blocked.")
+                        return False
+        
         time.sleep(2)
+        if i % 3 == 0:
+            print(f"Still waiting... (Attempt {i+1}/30)")
+            
     return False
 
 def main():
-    # 1. Cleanup
+    if os.path.exists("backend_output.log"):
+        try: os.remove("backend_output.log")
+        except: pass
+
     kill_process_by_name("uvicorn")
     kill_process_by_name("node")
     
-    # 2. Start Unified Backend (Serves Frontend)
+    time.sleep(2)
+    
     backend_proc = run_backend()
     
-    # 3. Wait for Readiness
     if not wait_for_backend():
-        print("Timeout: Application failed to start.")
+        print("Fatal: Application failed to start correctly.")
+        if os.path.exists("backend_output.log"):
+            with open("backend_output.log", "r") as f:
+                print("\n--- Backend Logs ---")
+                print(f.read())
         backend_proc.terminate()
         sys.exit(1)
         
-    # 4. Open Browser to Unified URL
     print("Launching Integrated Dashboard...")
     webbrowser.open("http://localhost:8000/admin")
     

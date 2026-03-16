@@ -78,7 +78,7 @@ export default function AdminDashboard() {
 
   const handleStartAnalysis = async () => {
     try {
-      await fetch('/start-analysis', { method: 'POST' });
+      await fetch('/api/start-analysis', { method: 'POST' });
       toast.success("Analysis started");
       setTimeout(triggerRefresh, 1000);
     } catch (e) {
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
 
   const handleStopAnalysis = async () => {
     try {
-      await fetch('/stop-analysis', { method: 'POST' });
+      await fetch('/api/stop-analysis', { method: 'POST' });
       toast.warning("Analysis stopped");
       setTimeout(triggerRefresh, 1000);
     } catch (e) {
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
 
   const handleDeleteSlot = async (id: string) => {
     try {
-      const res = await fetch(`/slots/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/slots/${id}`, { method: 'DELETE' });
       if (res.ok) {
         toast.success("Polygon removed and slot reset");
         if (drawingSlot === id) {
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/upload-parking-video', {
+      const res = await fetch('/api/upload-parking-video', {
         method: 'POST',
         body: formData,
       });
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
 
             <div className={`w-full max-w-4xl bg-black rounded-lg overflow-hidden flex items-center justify-center min-h-[400px] relative ${drawingSlot ? 'cursor-crosshair ring-4 ring-blue-500 rounded-lg' : ''}`}>
               <img
-                src="/video-feed"
+                src="/api/video-feed"
                 alt="Live Parking Feed MJPEG"
                 className="w-full max-h-[600px] object-contain"
                 onClick={handleVideoClick}
